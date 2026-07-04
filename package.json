@@ -1,0 +1,67 @@
+{
+  "name": "@senad-d/snykme",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Pi extension that summarizes Snyk code scan findings from the current repository for LLM workflows.",
+  "license": "MIT",
+  "author": "Senad Dizdarević <112484166+senad-d@users.noreply.github.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/senad-d/SnykMe.git"
+  },
+  "bugs": {
+    "url": "https://github.com/senad-d/SnykMe/issues"
+  },
+  "homepage": "https://github.com/senad-d/SnykMe#readme",
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "pi-coding-agent",
+    "snyk",
+    "security",
+    "static-analysis",
+    "typescript"
+  ],
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "files": [
+    "README.md",
+    "LICENSE",
+    "SECURITY.md",
+    "CHANGELOG.md",
+    "docs/**/*.md",
+    "src/**/*.ts",
+    "tsconfig.json"
+  ],
+  "scripts": {
+    "check:format": "node scripts/check-format.mjs",
+    "check:pack": "node scripts/check-package-contents.mjs",
+    "typecheck": "node scripts/check-format.mjs",
+    "test": "node scripts/check-format.mjs",
+    "test:coverage": "node scripts/check-format.mjs",
+    "validate": "node scripts/check-format.mjs && node scripts/check-package-contents.mjs"
+  },
+  "pi": {
+    "extensions": [
+      "./src/extension.ts"
+    ],
+    "image": "https://raw.githubusercontent.com/senad-d/SnykMe/main/img/demo.gif"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-coding-agent": "*",
+    "typebox": "*"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-ai": "^0.80.2",
+    "@earendil-works/pi-coding-agent": "^0.80.2",
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^26.0.1",
+    "eslint": "^10.6.0",
+    "globals": "^17.7.0",
+    "typebox": "^1.3.2",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.62.1"
+  }
+}
