@@ -2,6 +2,17 @@
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 
+const ACTIVE_SOURCE_FILES = [
+  "src/extension.ts",
+  "src/constants.ts",
+  "src/commands/snykme-command.ts",
+  "src/tools/snykme-get-issues-tool.ts",
+  "src/utils/snyk-issues.ts",
+  "src/utils/snyk-runner.ts",
+];
+
+const ACTIVE_SOURCE_FILE_REGEX = /^src\/(?:commands|tools|utils)\/[^/]+\.ts$/;
+
 const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 const hiddenEnvironmentFilePattern = /^\.env(?:$|\.)/;
 
@@ -35,6 +46,21 @@ const violations = [];
 for (const file of files) {
   for (const check of forbiddenChecks) {
     if (check.test(file)) violations.push({ file, label: check.label });
+  }
+}
+
+const sourceFiles = files.filter((file) => file.startsWith("src/") && file.endsWith(".ts"));
+for (const sourceFile of sourceFiles) {
+  if (sourceFile !== "src/extension.ts" && sourceFile !== "src/constants.ts") {
+    if (!ACTIVE_SOURCE_FILE_REGEX.test(sourceFile)) {
+      violations.push({ file: sourceFile, label: "inactive source module shipped" });
+    }
+  }
+}
+
+for (const requiredFile of ACTIVE_SOURCE_FILES) {
+  if (!files.includes(requiredFile)) {
+    violations.push({ file: requiredFile, label: "required shipped source file missing" });
   }
 }
 

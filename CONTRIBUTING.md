@@ -38,6 +38,13 @@ Update:
 
 whenever contracts or user-facing behavior changes.
 
+## Validation plan
+
+- `npm install`
+- `npm run validate` (format checks, package surface checks, type-check, unit tests)
+- `npm run test:coverage`
+- `pi --no-extensions -e .`
+
 ## Cleanup
 
 Avoid committing local runtime artifacts (e.g., generated `.sarif` files or JSON artifacts).

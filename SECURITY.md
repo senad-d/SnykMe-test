@@ -34,3 +34,8 @@ Do not include secrets, credentials, or private repository details.
 - Planned scan paths and artifacts are scoped to the current repository path.
 - No background jobs or persistent extension processes are added in preparation.
 - Planned runtime artifacts (`snyk-code.sarif`, `snyk-code-clean.json`) should be treated as local temporary outputs and cleaned up in implementation sessions.
+
+## Validation and quality checks
+
+- `npm run validate` performs formatting checks, package surface validation, TypeScript type-checking, and unit tests.
+- Keep `npm run check:pack` as the explicit packaging smoke step when release artifacts are assessed.

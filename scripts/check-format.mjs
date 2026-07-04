@@ -122,7 +122,11 @@ async function collectFiles(root) {
 
 const lifecycleEvent = process.env.npm_lifecycle_event;
 
-if (lifecycleEvent === "typecheck") {
+if (lifecycleEvent === "validate") {
+  await runFormatChecks();
+  runTypecheck();
+  runUnitTests();
+} else if (lifecycleEvent === "typecheck") {
   runTypecheck();
 } else if (lifecycleEvent === "test") {
   runUnitTests();

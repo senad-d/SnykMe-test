@@ -31,7 +31,12 @@
     "SECURITY.md",
     "CHANGELOG.md",
     "docs/**/*.md",
-    "src/**/*.ts",
+    "src/constants.ts",
+    "src/commands/snykme-command.ts",
+    "src/tools/snykme-get-issues-tool.ts",
+    "src/utils/snyk-issues.ts",
+    "src/utils/snyk-runner.ts",
+    "src/extension.ts",
     "tsconfig.json"
   ],
   "scripts": {
