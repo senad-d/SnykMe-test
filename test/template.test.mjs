@@ -599,6 +599,37 @@ test("runSnykScanWorkflow covers critical precondition outcomes without uncaught
     assert.equal(successfulWithFindings.summary.bySeverity.high, 1);
     assert.equal(successfulWithFindings.summary.bySeverity.low, 1);
 
+    const successfulWithFindingsAndExitCode1 = await runSnykScanWorkflow({
+      repositoryPath,
+      dependencies: {
+        executeSnykScan: async () => ({
+          success: false,
+          code: "scanFailed",
+          message: "Scan command exited with code 1",
+          exitCode: 1,
+          timedOut: false,
+          stdout: JSON.stringify({
+            runs: [
+              {
+                results: [
+                  {
+                    ruleId: "SNYK-200",
+                    message: { text: "non-issue test" },
+                    severity: "medium",
+                    properties: {},
+                  },
+                ],
+              },
+            ],
+          }),
+          stderr: "",
+        }),
+      },
+    });
+    assert.equal(successfulWithFindingsAndExitCode1.status, "success");
+    assert.equal(successfulWithFindingsAndExitCode1.summary.total, 1);
+    assert.equal(successfulWithFindingsAndExitCode1.summary.bySeverity.medium, 1);
+
     const artifactPlan = resolveSnykScanArtifacts(repositoryPath);
     assert.equal(await pathExists(artifactPlan.rawSarifPath), false);
     assert.equal(await pathExists(artifactPlan.cleanSarifPath), false);
@@ -798,6 +829,97 @@ test("snykme tool returns runtime failure details and truncation with limit", as
   assert.ok(limited.details.truncationNotice.includes("3"));
   assert.equal(limited.details.rawPaths, undefined);
 });
+
+test("snykme tool summary payload excludes unknown fields", async () => {
+  const tool = registerSnykToolWithRuntime(async () =>
+    asWorkflowSuccess({
+      message: "Scan completed: 1 issues total.",
+      summary: {
+        total: 1,
+        bySeverity: {
+          critical: 0,
+          high: 1,
+          medium: 0,
+          low: 0,
+          warning: 0,
+          info: 0,
+          unknown: 0,
+        },
+        invalidCount: 0,
+        warnings: [],
+        items: [
+          {
+            severity: "high",
+            rawSeverity: "error",
+            where: "src/events/register-guard.ts:325",
+            what: "Regular Expression Denial of Service (ReDoS)",
+            why: "Unsanitized user input from an exception flows into RegExp, where it is used to build a regular expression.",
+            cwe: ["CWE-400"],
+          },
+        ],
+      },
+    }),
+  );
+
+  const limited = await runToolAndCapture(tool, "tool-runtime-no-extra-fields", { limit: 3, includeRaw: false });
+  const payload = JSON.parse(limited.content[0].text);
+
+  assert.equal(Array.isArray(payload), true);
+  assert.equal(payload.length, 1);
+  assert.deepEqual(payload[0], {
+    severity: "error",
+    what: "Regular Expression Denial of Service (ReDoS)",
+    where: "src/events/register-guard.ts:325",
+    why: "Unsanitized user input from an exception flows into RegExp, where it is used to build a regular expression.",
+    cwe: ["CWE-400"],
+  });
+});
+
+test("snykme tool summary payload omits empty cwe arrays", async () => {
+  const tool = registerSnykToolWithRuntime(async () =>
+    asWorkflowSuccess({
+      message: "Scan completed: 1 issues total.",
+      summary: {
+        total: 1,
+        bySeverity: {
+          critical: 0,
+          high: 0,
+          medium: 1,
+          low: 0,
+          warning: 0,
+          info: 0,
+          unknown: 0,
+        },
+        invalidCount: 0,
+        warnings: [],
+        items: [
+          {
+            severity: "medium",
+            rawSeverity: "note",
+            where: "src/utils/example.ts:10",
+            what: "Example issue without CWE",
+            why: "No mapped CWE in rule metadata.",
+            cwe: [],
+          },
+        ],
+      },
+    }),
+  );
+
+  const limited = await runToolAndCapture(tool, "tool-runtime-empty-cwe", { limit: 3, includeRaw: false });
+  const payload = JSON.parse(limited.content[0].text);
+
+  assert.equal(Array.isArray(payload), true);
+  assert.equal(payload.length, 1);
+  assert.equal("cwe" in payload[0], false);
+  assert.deepEqual(payload[0], {
+    severity: "note",
+    what: "Example issue without CWE",
+    where: "src/utils/example.ts:10",
+    why: "No mapped CWE in rule metadata.",
+  });
+});
+
 
 test("snykme tool execution remains deterministic across repeated runtime calls", async () => {
   const tool = registerSnykToolWithRuntime(async () =>

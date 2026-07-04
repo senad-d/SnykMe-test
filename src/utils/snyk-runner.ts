@@ -546,7 +546,9 @@ export async function runSnykScanWorkflow(
     };
   }
 
-  if (!scanResult.success) {
+  const hasFindingsExit = !scanResult.success && scanResult.code === "scanFailed" && scanResult.exitCode === 1;
+
+  if (!scanResult.success && !hasFindingsExit) {
     return {
       status: "failure",
       code: scanResult.code,
@@ -563,7 +565,7 @@ export async function runSnykScanWorkflow(
     };
   }
 
-  const output = scanResult.stdout;
+  const output = scanResult.success ? scanResult.stdout : scanResult.stdout ?? "";
 
   try {
     await mergedDependencies.writeFile(artifactPlan.rawSarifPath, output);
@@ -638,8 +640,8 @@ export async function runSnykScanWorkflow(
     summary,
     exitCode: scanResult.exitCode,
     timedOut: scanResult.timedOut,
-    stdout: scanResult.stdout,
-    stderr: scanResult.stderr,
+    stdout: output,
+    stderr: scanResult.stderr ?? "",
   };
 }
 

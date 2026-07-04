@@ -170,9 +170,33 @@ function formatScanResult(
     ? `Response truncated to ${requestedLimit} item(s); rerun with a larger limit for more.`
     : undefined;
   const effectiveLimit = Math.min(requestedLimit, result.summary.total);
+  const issueItems = Array.isArray(result.summary.items) ? result.summary.items : [];
+  const visibleItems = issueItems.slice(0, effectiveLimit);
+  const findingsPayload = visibleItems.map((item) => {
+    const finding = {
+      severity: item.rawSeverity ?? item.severity,
+      what: item.what,
+      where: item.where,
+      why: item.why,
+    };
+
+    if (item.cwe.length > 0) {
+      return {
+        ...finding,
+        cwe: item.cwe,
+      };
+    }
+
+    return finding;
+  });
+
+  const summaryText = [
+    JSON.stringify(findingsPayload, null, 2),
+    truncationNotice ? `\n${truncationNotice}` : "",
+  ].join("\n").trim();
 
   return {
-    summaryText: result.message,
+    summaryText,
     details: {
       plannedCommand: result.plannedCommand,
       plannedCleanupTargets: result.plannedCleanupTargets,
@@ -184,6 +208,7 @@ function formatScanResult(
       summary: {
         total: result.summary.total,
         bySeverity: result.summary.bySeverity,
+        items: visibleItems,
       },
       invalidCount: result.summary.invalidCount,
       warnings: result.summary.warnings,
@@ -196,7 +221,6 @@ function formatScanResult(
     },
   };
 }
-
 /**
  * Tool registration.
  *
