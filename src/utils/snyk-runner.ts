@@ -638,7 +638,7 @@ export async function runSnykScanWorkflow(
     plannedArtifacts: artifactPlan,
     cleanup: cleanupArtifactsFlag ? await cleanupArtifacts(artifactPlan, mergedDependencies) : emptyCleanup([]),
     summary,
-    exitCode: scanResult.exitCode,
+    exitCode: scanResult.exitCode ?? null,
     timedOut: scanResult.timedOut,
     stdout: output,
     stderr: scanResult.stderr ?? "",
